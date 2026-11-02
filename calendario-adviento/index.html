@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdf4f5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Adviento">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Calendario de Misiones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: columna centrada sobre un cielo pastel con estrellas y corazones. Tarjetas blancas con borde azul, casillas rosas */
+:root{
+  --fondo:#fdf4f5; --blanco:#ffffff; --cielo:#eaf3fd; --cielo-2:#d3e5f8; --borde:#c6dbf2;
+  --tinta:#2c4878; --tinta-2:#6b80a8;
+  --rosa:#f4a8bf; --rosa-2:#ec7f9f; --rosa-claro:#fde4eb;
+  --sol:#fde8a8; --sol-2:#f3c552; --menta:#c9ecd9; --menta-2:#3f8f69; --azul:#5b95d8;
+  --f-display:"Caprasimo", "Georgia", serif;
+  --f-body:"Nunito", -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html,body{background:var(--fondo);color:var(--tinta)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;min-height:100%}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:16px}
+.pantalla{display:flex;flex-direction:column;gap:16px}
+
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta);font-weight:900;display:inline-flex;align-items:center;gap:6px}
+.eyebrow::before{content:"✦";color:var(--azul);font-size:14px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(32px,9vw,44px);line-height:1.02;margin:0;text-wrap:balance;color:var(--tinta)}
+.sub{color:var(--tinta-2);margin:0;font-weight:600}
+header{display:flex;flex-direction:column;gap:6px}
+
+/* Tarjetas */
+.tarjeta,.mision-0{background:var(--blanco);border:2px solid var(--borde);border-radius:26px;box-shadow:0 10px 30px rgba(91,149,216,.14)}
+.tarjeta{background:#fff var(--img-crear,none) center bottom / cover no-repeat;padding:26px 18px 34px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;position:relative;overflow:hidden}
+.foto-grande{position:relative;width:170px;height:170px;border-radius:50%;border:3px solid var(--borde);padding:0;cursor:pointer;background:var(--cielo);overflow:hidden;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;color:var(--tinta);font:inherit;font-weight:800;font-size:14px;box-shadow:0 0 0 8px var(--rosa-claro)}
+.foto-grande svg{width:44px;height:44px;color:var(--azul)}
+.foto-grande img{width:100%;height:100%;object-fit:cover}
+.foto-grande .cambiar{position:absolute;bottom:0;left:0;right:0;background:rgba(44,72,120,.7);color:#fff;font-size:12px;padding:7px 0}
+.campo{display:flex;flex-direction:column;gap:8px;width:100%;text-align:left}
+.campo label{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta)}
+.campo input{font:inherit;font-size:18px;font-weight:700;padding:13px 16px;border-radius:16px;border:2px solid var(--borde);background:#fff;color:var(--tinta)}
+.campo input::placeholder{color:#9aaccb}
+.campo input:focus{outline:none;border-color:var(--rosa-2);box-shadow:0 0 0 4px var(--rosa-claro)}
+.nivel0{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color:var(--tinta)}
+.nivel0 b{background:var(--tinta);color:#fff;border-radius:99px;padding:3px 12px}
+.grande{font:inherit;font-family:var(--f-display);font-size:23px;border:0;border-radius:20px;padding:15px 18px;cursor:pointer;background:linear-gradient(180deg,#f59ab4,var(--rosa-2));color:#fff;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 6px 0 #d9668a,0 10px 24px rgba(236,127,159,.35);text-shadow:0 1px 0 rgba(0,0,0,.08)}
+.grande:active{transform:translateY(3px);box-shadow:0 3px 0 #d9668a}
+.grande::before{content:"♥";font-family:var(--f-body);font-size:24px}
+.grande::after{content:"✦";font-family:var(--f-body);font-size:18px;color:#fff6c9}
+.error{color:var(--rosa-2);font-size:14px;font-weight:800;margin:0}
+
+/* Misión inicial */
+.mision-0{padding:22px 18px;display:flex;flex-direction:column;gap:14px}
+.mision-0 .etq{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--rosa-2)}
+.mision-0 h2{font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1.08;margin:0;text-wrap:balance}
+.mision-0 p{margin:0;color:var(--tinta-2);font-weight:600}
+.pasos{margin:0;padding:14px 14px 14px 34px;display:flex;flex-direction:column;gap:6px;font-weight:700;background:var(--cielo);border-radius:16px}
+
+/* Cabecera con avatar */
+.perfil{display:flex;align-items:center;gap:16px;background:var(--cielo) var(--img-nivel,none) center / cover no-repeat;border:2px solid var(--borde);border-radius:24px;padding:14px 16px;box-shadow:0 8px 24px rgba(91,149,216,.12)}
+.avatar{position:relative;flex:none;width:76px;height:76px;border:3px solid #fff;padding:0;border-radius:50%;cursor:pointer;background:var(--cielo-2);box-shadow:0 0 0 2px var(--borde)}
+.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.avatar .inicial{font-family:var(--f-display);font-size:30px;color:var(--tinta)}
+.avatar .lv{position:absolute;bottom:-6px;right:-10px;background:var(--sol);color:var(--tinta);font-weight:900;font-size:12px;border-radius:99px;padding:2px 9px;border:2px solid var(--sol-2);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.perfil-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.perfil-info .nombre{font-family:var(--f-display);font-size:24px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fila-xp{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:700;color:var(--tinta)}
+.fila-xp b{color:var(--rosa-2);font-variant-numeric:tabular-nums}
+.barra{height:12px;border-radius:99px;background:#fff;border:2px solid var(--borde);overflow:hidden}
+.barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fb1ea,var(--azul));border-radius:99px;transition:width .6s ease}
+
+.aviso{background:var(--cielo);border:2px solid var(--borde);border-radius:18px;padding:12px 16px;font-size:15px;font-weight:700;color:var(--tinta);display:block}
+.aviso::before{content:"✦ ";color:var(--sol-2)}
+.aviso b{color:var(--rosa-2)}
+
+.pestanas{display:grid;grid-template-columns:1fr 1fr;background:#fff;border:2px solid var(--borde);border-radius:18px;padding:4px;gap:4px}
+.pestanas button{font:inherit;font-family:var(--f-display);font-size:18px;border:0;border-radius:14px;padding:10px;cursor:pointer;background:transparent;color:var(--tinta);display:flex;align-items:center;justify-content:center;gap:8px}
+.pestanas button svg{width:20px;height:20px}
+.pestanas button[aria-selected="true"]{background:linear-gradient(180deg,#a6c9f1,#80b1e8);color:#fff}
+button:focus-visible{outline:3px solid var(--rosa-2);outline-offset:2px}
+
+/* Casillas */
+.rejilla{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.casilla{position:relative;aspect-ratio:1/.86;max-width:100%;border:0;border-radius:14px;padding:8px 9px;font:inherit;color:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;background:var(--cielo-2);transition:transform .15s ease;box-shadow:inset 0 -4px 0 rgba(44,72,120,.08)}
+.casilla:active{transform:scale(.95)}
+.casilla .n{font-family:var(--f-display);font-size:clamp(24px,7.5vw,32px);line-height:1}
+.casilla .e{font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.1}
+.casilla.futuro{background:var(--cielo-2);color:#fff}
+.casilla.futuro .e{color:var(--tinta-2)}
+.casilla.nivel-falta{background:linear-gradient(180deg,#f7b6c8,var(--rosa));box-shadow:inset 0 -4px 0 rgba(217,102,138,.35)}
+.casilla.lista{background:linear-gradient(180deg,#fff3c8,var(--sol));color:var(--tinta);box-shadow:inset 0 0 0 2px var(--sol-2),inset 0 -4px 0 rgba(243,197,82,.4);animation:latir 1.6s ease-in-out infinite}
+.casilla.lista::before{content:"✦";position:absolute;top:6px;right:8px;color:var(--sol-2);font-size:18px}
+.casilla.abierta{background:var(--menta);color:var(--menta-2);box-shadow:inset 0 -4px 0 rgba(63,143,105,.2)}
+.casilla.abierta::before{content:"♥";position:absolute;top:6px;right:9px;color:var(--menta-2);font-size:14px}
+.casilla.hoy::after{content:"Hoy";position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:var(--tinta);color:#fff;font-size:10px;font-weight:900;padding:2px 7px;border-radius:99px;letter-spacing:.05em;text-transform:uppercase}
+@keyframes latir{50%{transform:scale(1.04)}}
+
+.leyenda{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;font-size:12px;font-weight:700;color:var(--tinta)}
+.leyenda span{display:inline-flex;align-items:center;gap:6px}
+.leyenda i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.l-lista{background:var(--sol);box-shadow:inset 0 0 0 2px var(--sol-2)}
+.l-nivel{background:var(--rosa)}
+.l-abierta{background:var(--menta)}
+.l-futuro{background:var(--cielo-2)}
+
+/* Misiones */
+.misiones{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.mision{background:#fff;border:2px solid var(--borde);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:start}
+.mision h3{margin:0;font-size:17px;font-weight:800;line-height:1.25}
+.mision p{margin:0;font-size:14px;color:var(--tinta-2);grid-column:1}
+.xp{font-weight:900;font-size:13px;background:var(--rosa-claro);color:var(--rosa-2);border-radius:99px;padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mision .pie{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.mision .veces{font-size:12px;font-weight:700;color:var(--tinta-2)}
+.mision.hecha{background:#f2faf6;border-color:var(--menta)}
+.mision.hecha h3{color:var(--tinta-2)}
+.mision.hecha .estado{font-size:13px;font-weight:900;color:var(--menta-2)}
+.subtitulo-lista{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta);margin:8px 0 0;font-weight:900}
+.subtitulo-lista::before{content:"✦ ";color:var(--azul)}
+.btn{font:inherit;font-weight:900;border:0;border-radius:14px;padding:10px 16px;cursor:pointer;background:var(--rosa-2);color:#fff;box-shadow:0 3px 0 #d9668a}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #d9668a}
+.btn.claro{background:#fff;color:var(--tinta);box-shadow:inset 0 0 0 2px var(--borde);padding:7px 12px;font-size:13px}
+
+.registro{list-style:none;margin:0;padding:4px 16px;display:flex;flex-direction:column;background:#fff;border:2px solid var(--borde);border-radius:18px}
+.registro li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--cielo-2);font-size:14px;font-weight:700}
+.registro li:last-child{border-bottom:0}
+.registro li span{flex:1;min-width:0}
+.registro li small{color:var(--tinta-2);display:block;font-weight:600}
+.registro .mas{color:var(--rosa-2);font-weight:900;font-variant-numeric:tabular-nums}
+.vacio{color:var(--tinta-2);font-size:14px;margin:0;font-weight:600}
+
+/* Hoja inferior */
+.velo{position:fixed;inset:0;background:rgba(44,72,120,.35);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.hoja{width:100%;max-width:560px;max-height:88%;overflow-y:auto;background:#fff;color:var(--tinta);border-radius:28px 28px 0 0;padding-top:22px;padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:16px;animation:subir .25s ease-out}
+@keyframes subir{from{transform:translateY(30px);opacity:.4}}
+.hoja-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hoja h2{font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1.05;margin:0}
+.hoja .fecha{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--rosa-2)}
+.cerrar{border:0;background:var(--cielo);color:var(--tinta);width:38px;height:38px;border-radius:50%;font-size:22px;line-height:1;cursor:pointer;flex:none}
+.requisitos{list-style:none;margin:0;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:var(--cielo);border-radius:16px}
+.requisitos li{font-weight:800}
+.requisitos .ok{color:var(--menta-2)}
+.requisitos .no{color:var(--rosa-2)}
+.abrir{font:inherit;font-family:var(--f-display);font-size:23px;border:0;border-radius:20px;padding:16px;cursor:pointer;background:linear-gradient(180deg,#f59ab4,var(--rosa-2));color:#fff;box-shadow:0 6px 0 #d9668a}
+.abrir:disabled{background:var(--cielo-2);color:var(--tinta-2);box-shadow:none;cursor:not-allowed}
+.premio{border-radius:20px;padding:20px;background:linear-gradient(180deg,#fff3c8,var(--sol));color:var(--tinta);display:flex;flex-direction:column;gap:8px;border:2px solid var(--sol-2)}
+.premio .eyebrow::before{color:var(--rosa-2)}
+.premio .cajon{font-family:var(--f-display);font-size:26px;line-height:1.15}
+
+.pruebas{background:linear-gradient(135deg,var(--rosa-claro),#efe6fb);border:2px solid #f6c6d5;border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:var(--tinta)}
+.pruebas b{font-size:15px;font-weight:900}
+.pruebas b::before{content:"✦ ";color:var(--sol-2)}
+.pruebas .btn{align-self:flex-start;padding:6px 12px;font-size:13px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:40;background:var(--tinta);color:#fff;font-weight:800;padding:12px 18px;border-radius:16px;box-shadow:0 10px 30px rgba(44,72,120,.35);max-width:calc(100% - 32px);text-align:center;animation:subir .25s ease-out}
+.confeti{position:fixed;inset:0;pointer-events:none;z-index:30}
+/* Fondos de temática */
+.decor{position:fixed;inset:0;pointer-events:none;z-index:0;background:var(--fondo) var(--img-fondo,none) center bottom / cover no-repeat}
+.wrap{position:relative;z-index:1}
+/* Recuadro que engloba todo el contenido */
+.marco{position:relative;z-index:1;max-width:580px;margin-block:14px 24px;margin-inline:max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px));background:#fff var(--img-panel,none) center top / cover no-repeat;border:2px solid var(--borde);border-radius:34px;box-shadow:0 0 0 6px rgba(255,255,255,.6),0 18px 50px rgba(91,149,216,.18)}
+@media (min-width:600px){.marco{margin-inline:auto}}
+.marco .wrap{padding-block:18px 26px;padding-left:max(14px, env(safe-area-inset-left, 0px));padding-right:max(14px, env(safe-area-inset-right, 0px))}
+.casilla{aspect-ratio:1.38/1;border-radius:12px;padding:7px 9px}
+.casilla .n{font-size:clamp(22px,6.6vw,30px)}
+.casilla .e{font-size:9px}
+.perfil,.pruebas{position:relative;overflow:hidden}
+.pruebas::after{content:"♥";position:absolute;right:16px;top:10px;color:var(--rosa-2);font-size:20px;opacity:.6}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="decor" aria-hidden="true"></div>
+<div class="marco">
+<div class="wrap">
+  <div class="pruebas" id="pruebas" hidden>
+    <b>Modo pruebas</b>
+    <span>Las fechas no cuentan y las misiones se pueden repetir sin límite. Este progreso se guarda aparte y no afecta al de ella.</span>
+    <button class="btn" id="borrarPruebas" type="button">Empezar de cero</button>
+  </div>
+
+  <!-- Pantalla 1: crear personaje -->
+  <section class="pantalla" id="pPerfil" hidden>
+    <header>
+      <span class="eyebrow">Adviento 2026</span>
+      <h1>Crea tu personaje</h1>
+      <p class="sub">Antes de empezar la aventura necesitas una foto y un nombre.</p>
+    </header>
+    <form class="tarjeta" id="formPerfil">
+      <button type="button" class="foto-grande" id="btnFoto" aria-label="Elegir foto de perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span>Toca para subir tu foto</span></button>
+      <input type="file" id="inFoto" accept="image/*" hidden>
+      <div class="campo">
+        <label for="inNombre">Nombre de tu personaje</label>
+        <input id="inNombre" maxlength="24" autocomplete="off" placeholder="Escribe tu nombre">
+      </div>
+      <span class="nivel0">Empiezas en <b>Nivel 0</b></span>
+      <p class="error" id="errPerfil" hidden></p>
+      <button class="grande" id="btnCrear">Crear personaje</button>
+    </form>
+  </section>
+
+  <!-- Pantalla 2: misión inicial -->
+  <section class="pantalla" id="pViaje" hidden>
+    <div class="perfil" id="cabecera2"></div>
+    <div class="mision-0">
+      <span class="etq">Misión inicial · de nivel 0 a nivel 1</span>
+      <h2>Planificar un viaje navideño</h2>
+      <p>Para desbloquear el calendario tienes que organizar un viaje navideño lo antes posible.</p>
+      <ol class="pasos">
+        <li>Elige destino y fechas</li>
+        <li>Haz la reserva</li>
+        <li>Cuando esté reservado recibirás un código secreto</li>
+      </ol>
+      <form class="campo" id="formCodigo">
+        <label for="inCodigo">Código secreto</label>
+        <div style="display:flex;gap:8px">
+          <input id="inCodigo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe el código" style="flex:1;min-width:0">
+          <button class="btn">Comprobar</button>
+        </div>
+        <p class="error" id="errCodigo" hidden>Ese código no es correcto.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Pantalla 3: calendario -->
+  <section class="pantalla" id="pApp" hidden>
+    <div class="perfil" id="cabecera3"></div>
+    <div class="aviso" id="aviso"></div>
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" id="tabCal" aria-selected="true" aria-controls="vistaCal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Calendario</button>
+      <button type="button" role="tab" id="tabMis" aria-selected="false" aria-controls="vistaMis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v3M8 20h8M9 17h6"/></svg>Misiones</button>
+    </div>
+    <section id="vistaCal" role="tabpanel" aria-labelledby="tabCal" style="display:flex;flex-direction:column;gap:14px">
+      <div class="rejilla" id="rejilla" role="list"></div>
+      <div class="leyenda" aria-label="Leyenda">
+        <span><i class="l-lista"></i>Lista para abrir</span>
+        <span><i class="l-nivel"></i>Falta nivel</span>
+        <span><i class="l-abierta"></i>Abierta</span>
+        <span><i class="l-futuro"></i>Aún no es el día</span>
+      </div>
+    </section>
+    <section id="vistaMis" role="tabpanel" aria-labelledby="tabMis" hidden style="flex-direction:column;gap:12px">
+      <ul class="misiones" id="listaMisiones"></ul>
+      <h2 class="subtitulo-lista">Completadas</h2>
+      <ul class="misiones" id="listaHechas"></ul>
+      <h2 class="subtitulo-lista">Historial</h2>
+      <ul class="registro" id="registro"></ul>
+      <h2 class="subtitulo-lista">Copia de seguridad</h2>
+      <div class="aviso">El progreso se guarda en este móvil. Descarga una copia de vez en cuando por si cambias de móvil o se borran los datos del navegador.
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button type="button" class="btn claro" id="btnCopia">Descargar copia</button>
+          <button type="button" class="btn claro" id="btnRestaurar">Restaurar copia</button>
+          <input type="file" id="inCopia" accept="application/json,.json" hidden>
+        </div>
+      </div>
+    </section>
+  </section>
+</div>
+
+</div>
+<div class="velo" id="velo" hidden>
+  <div class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hojaTitulo"></div>
+</div>
+<canvas class="confeti" id="confeti" hidden></canvas>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN. Todo lo que hay que personalizar está aquí.
+
+   Reglas: empieza en nivel 0. Cada "xpPorNivel" sube un nivel.
+   De nivel 0 a 1 se sube con el código del viaje.
+   La casilla N se abre si ya es el día N de diciembre y tiene nivel N o más.
+
+   Misiones:
+     id      identificador único, sin espacios
+     nombre  título de la misión
+     desc    explicación (opcional)
+     xp      experiencia que da
+     porDia  cuántas veces al día se puede hacer (vacío = sin límite diario)
+     max     cuántas veces en total (0 o vacío = sin límite)
+   ===================================================================== */
+// Modo pruebas: abre la web con #pruebas al final del enlace. Sin fechas, progreso aparte.
+const PRUEBAS = location.hash === "#pruebas";
+
+const CONFIG = {
+  anio: 2026,
+  titulo: "Calendario de Misiones",
+  xpPorNivel: 100,
+  codigoViaje: "Navidad2026",   // el código que le das cuando el viaje esté reservado
+  misiones: [
+    { id:"moto",        nombre:"Salir de ruta en moto",                  xp:150, max:1 },
+    { id:"nieve",       nombre:"Ir a ver la nieve",                      xp:150, max:1 },
+    { id:"viaje",       nombre:"Viajar a algún sitio",                   xp:150, max:1 },
+    { id:"masaje",      nombre:"Hacernos un masaje",                     xp:150, max:1 },
+    { id:"restaurante", nombre:"Ir a comer a un restaurante",            xp:150, max:1 },
+    { id:"cine",        nombre:"Ir al cine",                             xp:100, max:1 },
+    { id:"excursion",   nombre:"Hacer una excursión o ruta a pie",       xp:100, max:1 },
+    { id:"feria",       nombre:"Visitar una feria de Navidad",           xp:100, max:1 },
+    { id:"luces",       nombre:"Ver las luces de Navidad",               xp:100, max:1 },
+    { id:"foto-arbol",  nombre:"Hacernos una foto en un árbol de Navidad", xp:100, max:1 },
+    { id:"pijamas",     nombre:"Comprar pijamas navideños a conjunto",   xp:100, max:1 },
+    { id:"compras",     nombre:"Ir de compras",                          xp:150, max:1 },
+    { id:"amigos",      nombre:"Ir a pasear con amigos",                 xp:100, max:1 },
+    { id:"galletas",    nombre:"Hacer galletas",                         xp:100, max:1 },
+    { id:"juego-mesa",  nombre:"Echar una partida a un juego de mesa",   xp:100, max:1 },
+    { id:"peli",        nombre:"Ver una película navideña",              xp:100, max:1 },
+    { id:"churros",     nombre:"Comer chocolate con churros",            xp:100, max:1 },
+    { id:"cafe",        nombre:"Tomar un café", desc:"Se puede repetir todas las veces que quieras.", xp:20 },
+    { id:"foto",        nombre:"Hacer una foto",  desc:"Se puede repetir todas las veces que quieras.", xp:20 }
+  ],
+  premios: {}           // opcional: { 5:"Texto especial del día 5" }. Si no, pone "Abre el cajón N"
+};
+/* ===================================================================== */
+
+const ENSAYO = PRUEBAS;
+const LS_KEY = ENSAYO ? "adviento-v3-pruebas" : "adviento-v3";
+const ORDEN = [7,19,3,14,22,1,11,16,5,24,9,20,13,2,18,8,23,12,4,17,10,21,6,15];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const VACIO = () => ({ perfil:null, hist:{}, borradas:{}, abiertas:{} });
+
+let estado = VACIO();
+let diaAbierto = null, fotoTemporal = null, editandoPerfil = false;
+
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,"0");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g,"");
+
+const hoyISO = () => new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const fechaDia = n => `${CONFIG.anio}-12-${pad(n)}`;
+const fechaBonita = iso => `${Number(iso.slice(8,10))} de ${MESES[Number(iso.slice(5,7))-1]}`;
+const empezado = () => PRUEBAS || hoyISO() >= fechaDia(1);
+const tocaYa = n => PRUEBAS || hoyISO() >= fechaDia(n);
+
+/* ---------- Cálculos ---------- */
+const registros = () => Object.values(estado.hist).filter(r => !estado.borradas[r.id]).sort((a,b)=> b.ts - a.ts);
+const xpTotal = () => registros().reduce((s,r)=> s + (Number(r.xp)||0), 0);
+const nivelDe = xp => Math.floor(xp / CONFIG.xpPorNivel);
+const viajeHecho = () => registros().some(r => r.mision === "_viaje_planificado");
+const vecesHoy = id => registros().filter(r => r.mision === id && r.fecha === hoyISO()).length;
+const vecesTotal = id => registros().filter(r => r.mision === id).length;
+
+function puedeHacer(m){
+  if (m.max && vecesTotal(m.id) >= m.max) return {ok:false, motivo:"Completada", hecha:true};
+  if (!empezado()) return {ok:false, motivo:"Desde el 1 de diciembre"};
+  if (!PRUEBAS && m.porDia && vecesHoy(m.id) >= m.porDia) return {ok:false, motivo:"Hecha hoy. Vuelve mañana"};
+  return {ok:true};
+}
+function estadoDia(n){
+  if (estado.abiertas[n]) return "abierta";
+  if (!tocaYa(n)) return "futuro";
+  if (nivelDe(xpTotal()) < n) return "nivel-falta";
+  return "lista";
+}
+
+/* ---------- Guardado: en el móvil siempre, y en la nube si está disponible ---------- */
+function cargarLocal(){
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY)||"null"); if (s) estado = Object.assign(VACIO(), s); } catch(e){}
+}
+function guardarLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(estado)); } catch(e){} }
+function fusionar(o){
+  if (!o) return false;
+  let cambia = false;
+  if (o.perfil && (!estado.perfil || (o.perfil.ts||0) > (estado.perfil.ts||0))){ estado.perfil = o.perfil; cambia = true; }
+  for (const id in (o.hist||{})) if (!estado.hist[id]){ estado.hist[id] = o.hist[id]; cambia = true; }
+  for (const k of ["borradas","abiertas"]) for (const id in (o[k]||{})) if (o[k][id] && !estado[k][id]){ estado[k][id] = true; cambia = true; }
+  return cambia;
+}
+function guardar(){ guardarLocal(); }
+
+/* ---------- Copia de seguridad ---------- */
+function descargarCopia(){
+  const blob = new Blob([JSON.stringify({app:"adviento", version:3, estado}, null, 1)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `adviento-copia-${hoyISO()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast("Copia descargada");
+}
+function restaurarCopia(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (d.app !== "adviento" || !d.estado) throw 0;
+      fusionar(d.estado); guardar(); pintar(); toast("Copia restaurada");
+    } catch(e){ toast("Ese archivo no es una copia del calendario"); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- Foto de perfil: se recorta en cuadrado y se reduce ---------- */
+function leerFoto(file){
+  return new Promise((ok, ko) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const lado = Math.min(img.naturalWidth, img.naturalHeight);
+      const c = document.createElement("canvas"); c.width = c.height = 320;
+      c.getContext("2d").drawImage(img, (img.naturalWidth-lado)/2, (img.naturalHeight-lado)/2, lado, lado, 0, 0, 320, 320);
+      URL.revokeObjectURL(url);
+      ok(c.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); ko(); };
+    img.src = url;
+  });
+}
+function pintarFotoGrande(src){
+  const b = $("#btnFoto");
+  b.innerHTML = src ? `<img src="${src}" alt="Tu foto"><span class="cambiar">Cambiar foto</span>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span>Toca para subir tu foto</span>`;
+}
+$("#btnFoto").onclick = () => $("#inFoto").click();
+$("#inFoto").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { fotoTemporal = await leerFoto(f); pintarFotoGrande(fotoTemporal); $("#errPerfil").hidden = true; }
+  catch(_) { const er = $("#errPerfil"); er.textContent = "No se ha podido cargar esa imagen. Prueba con otra."; er.hidden = false; }
+  e.target.value = "";
+};
+$("#formPerfil").onsubmit = e => {
+  e.preventDefault();
+  const nombre = $("#inNombre").value.trim();
+  const er = $("#errPerfil");
+  if (!fotoTemporal){ er.textContent = "Falta tu foto de perfil."; er.hidden = false; return; }
+  if (!nombre){ er.textContent = "Falta el nombre de tu personaje."; er.hidden = false; return; }
+  const nuevo = !estado.perfil;
+  estado.perfil = { nombre, foto:fotoTemporal, ts:Date.now() };
+  editandoPerfil = false; $("#btnCrear").textContent = "Crear personaje";
+  guardar(); pintar();
+  toast(nuevo ? `¡Bienvenida, ${nombre}! Nivel 0` : "Perfil actualizado");
+};
+
+/* ---------- Código del viaje ---------- */
+$("#formCodigo").onsubmit = e => {
+  e.preventDefault();
+  if (norm($("#inCodigo").value) === norm(CONFIG.codigoViaje)){
+    const id = "viaje-" + Date.now().toString(36);
+    estado.hist[id] = { id, mision:"_viaje_planificado", nombre:"Planificar un viaje navideño", xp:CONFIG.xpPorNivel, fecha:hoyISO(), ts:Date.now() };
+    guardar(); pintar(); confeti();
+    toast("¡Nivel 1! Calendario desbloqueado");
+  } else { $("#errCodigo").hidden = false; }
+};
+
+/* ---------- Misiones y casillas ---------- */
+function completar(m){
+  if (!puedeHacer(m).ok) return;
+  const antes = nivelDe(xpTotal());
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  estado.hist[id] = { id, mision:m.id, nombre:m.nombre, xp:m.xp, fecha:hoyISO(), ts:Date.now() };
+  guardar();
+  const n = nivelDe(xpTotal());
+  pintar();
+  if (n > antes){
+    confeti();
+    const cuando = n <= 24 ? (tocaYa(n) ? `Ya puedes abrir la casilla ${n}.` : `La casilla ${n} se abrirá el ${n} de diciembre.`) : "";
+    toast(`¡Nivel ${n}! ${cuando}`);
+  } else toast(`+${m.xp} XP`);
+}
+function deshacer(id){ estado.borradas[id] = true; guardar(); pintar(); }
+function abrirCasilla(n){ if (estadoDia(n) !== "lista") return; estado.abiertas[n] = true; guardar(); pintar(); confeti(); }
+
+
+/* ---------- Temática: imágenes fijas en la carpeta tema/ ----------
+   Sustituye cualquiera de estos archivos por otro con el mismo nombre y la web cambia sola.
+   tema/fondo.png        fondo de toda la página
+   tema/fondo-crear.png  fondo de la tarjeta de crear personaje
+   tema/fondo-nivel.png  fondo de la tarjeta del avatar y el nivel
+   tema/fondo-panel.png  fondo del recuadro que engloba todo el contenido */
+function aplicarTema(){
+  const v = Date.now();   // evita que el móvil se quede con la imagen antigua en caché
+  const imgs = { "--img-fondo":"tema/fondo.png", "--img-crear":"tema/fondo-crear.png", "--img-nivel":"tema/fondo-nivel.png", "--img-panel":"tema/fondo-panel.png" };
+  for (const k in imgs) document.documentElement.style.setProperty(k, `url("${imgs[k]}?v=${v}")`);
+}
+
+/* ---------- Pintado ---------- */
+function cabecera(){
+  const p = estado.perfil, xp = xpTotal(), nivel = nivelDe(xp), resto = xp % CONFIG.xpPorNivel;
+  const foto = p?.foto ? `<img src="${p.foto}" alt="">` : `<span class="inicial">${esc((p?.nombre||"?")[0])}</span>`;
+  return `<button type="button" class="avatar" data-editar aria-label="Editar perfil">${foto}<span class="lv">Nv ${nivel}</span></button>
+    <div class="perfil-info">
+      <span class="nombre">${esc(p?.nombre || "")}</span>
+      <div class="fila-xp"><span>${resto} / ${CONFIG.xpPorNivel} XP</span><b>${xp} XP</b></div>
+      <div class="barra" aria-hidden="true"><i style="width:${resto / CONFIG.xpPorNivel * 100}%"></i></div>
+      <div class="fila-xp"><span>Faltan ${CONFIG.xpPorNivel - resto} XP para el nivel ${nivel + 1}</span></div>
+    </div>`;
+}
+
+function pintar(){
+  const fase = !estado.perfil ? "perfil" : !viajeHecho() ? "viaje" : "app";
+  $("#pPerfil").hidden = fase !== "perfil" && !editandoPerfil;
+  $("#pViaje").hidden = fase !== "viaje" || editandoPerfil;
+  $("#pApp").hidden = fase !== "app" || editandoPerfil;
+  if (editandoPerfil || fase === "perfil"){ $("#pPerfil").hidden = false; return; }
+
+  const cab = fase === "viaje" ? $("#cabecera2") : $("#cabecera3");
+  cab.innerHTML = cabecera();
+  cab.querySelector("[data-editar]").onclick = editarPerfil;
+  if (fase === "viaje") return;
+
+  const hoy = hoyISO();
+  const abiertas = Object.keys(estado.abiertas).length;
+  const aviso = $("#aviso");
+  if (!empezado()){
+    const dias = Math.round((new Date(fechaDia(1)) - new Date(hoy)) / 86400000);
+    aviso.innerHTML = `Las misiones empiezan el <b>1 de diciembre</b>. Faltan <b>${dias} ${dias===1?"día":"días"}</b>.`;
+  } else {
+    const dias24 = [...Array(24)].map((_,i)=>i+1);
+    const listas = dias24.filter(n => estadoDia(n) === "lista");
+    if (abiertas === 24) aviso.innerHTML = "<b>¡Calendario completado!</b> Feliz Navidad.";
+    else if (listas.length) aviso.innerHTML = `Puedes abrir ${listas.length===1 ? "la casilla" : "las casillas"} <b>${listas.join(", ")}</b>.`;
+    else {
+      const sig = dias24.find(n => !estado.abiertas[n]);
+      aviso.innerHTML = tocaYa(sig)
+        ? `Para abrir la casilla <b>${sig}</b> necesitas nivel <b>${sig}</b>. Ve a Misiones.`
+        : `Todo al día. La siguiente casilla se abre el <b>${sig} de diciembre</b>.`;
+    }
+  }
+
+  const rej = $("#rejilla");
+  rej.innerHTML = "";
+  for (const n of ORDEN){
+    const st = estadoDia(n);
+    const etiqueta = {abierta:"Abierta", futuro:"Cerrada", "nivel-falta":`Nivel ${n}`, lista:"¡Ábrela!"}[st];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `casilla ${st}` + (!PRUEBAS && fechaDia(n) === hoy ? " hoy" : "");
+    b.setAttribute("role","listitem");
+    b.setAttribute("aria-label", `Día ${n}: ${etiqueta}`);
+    b.innerHTML = `<span class="n">${n}</span><span class="e">${etiqueta}</span>`;
+    b.onclick = () => abrirHoja(n);
+    rej.appendChild(b);
+  }
+
+  const lm = $("#listaMisiones"), lh = $("#listaHechas");
+  lm.innerHTML = ""; lh.innerHTML = "";
+  CONFIG.misiones.forEach(m => {
+    const p = puedeHacer(m), total = vecesTotal(m.id);
+    const li = document.createElement("li");
+    li.className = "mision" + (p.ok ? "" : " hecha");
+    const veces = m.max === 1 ? "Una sola vez" : (total ? `Hecha ${total} ${total===1?"vez":"veces"}` : "Se puede repetir");
+    li.innerHTML = `<h3>${esc(m.nombre)}</h3><span class="xp">+${m.xp} XP</span>${m.desc ? `<p>${esc(m.desc)}</p>` : ""}
+      <div class="pie"><span class="veces">${veces}</span>
+      ${p.ok ? `<button type="button" class="btn">Completada</button>` : `<span class="estado">${p.hecha ? "✓ " : ""}${p.motivo}</span>`}</div>`;
+    if (p.ok) li.querySelector("button").onclick = () => completar(m);
+    (p.hecha ? lh : lm).appendChild(li);
+  });
+  if (!lh.children.length) lh.innerHTML = `<li><p class="vacio">Aún no has completado ninguna misión.</p></li>`;
+
+  const reg = $("#registro");
+  const rs = registros();
+  reg.innerHTML = "";
+  rs.slice(0, 40).forEach((r, i) => {
+    const li = document.createElement("li");
+    const sePuede = i === 0 && r.mision !== "_viaje_planificado";
+    li.innerHTML = `<span>${esc(r.nombre)}<small>${fechaBonita(r.fecha)}</small></span><b class="mas">+${r.xp}</b>${sePuede ? `<button type="button" class="btn claro">Deshacer</button>` : ""}`;
+    if (sePuede) li.querySelector("button").onclick = () => deshacer(r.id);
+    reg.appendChild(li);
+  });
+
+  if (diaAbierto) pintarHoja(diaAbierto);
+}
+
+function editarPerfil(){
+  editandoPerfil = true;
+  fotoTemporal = estado.perfil?.foto || null;
+  pintarFotoGrande(fotoTemporal);
+  $("#inNombre").value = estado.perfil?.nombre || "";
+  $("#btnCrear").textContent = "Guardar cambios";
+  pintar();
+}
+
+function pintarHoja(n){
+  const st = estadoDia(n);
+  const okFecha = tocaYa(n), okNivel = nivelDe(xpTotal()) >= n;
+  let cuerpo;
+  if (st === "abierta"){
+    cuerpo = `<div class="premio"><span class="eyebrow">Tu premio</span><span class="cajon">${esc(CONFIG.premios[n] || `Abre el cajón ${n}.`)}</span></div>`;
+  } else {
+    const xpFalta = Math.max(0, n * CONFIG.xpPorNivel - xpTotal());
+    cuerpo = `<ul class="requisitos">
+        <li class="${okFecha?"ok":"no"}">${okFecha?"✓":"✗"} Es ${n} de diciembre o después</li>
+        <li class="${okNivel?"ok":"no"}">${okNivel?"✓":"✗"} Nivel ${n}${okNivel ? "" : ` (te faltan ${xpFalta} XP)`}</li>
+      </ul>
+      <button type="button" class="abrir" id="btnAbrir" ${st==="lista"?"":"disabled"}>${st==="lista" ? `Abrir casilla ${n}` : "Aún no se puede abrir"}</button>
+      ${!okNivel && okFecha ? `<button type="button" class="btn" id="irMisiones">Ir a misiones</button>` : ""}`;
+  }
+  $("#hoja").innerHTML = `<div class="hoja-top"><div><span class="fecha">${n} de diciembre</span><h2 id="hojaTitulo">Casilla ${n}</h2></div><button type="button" class="cerrar" id="cerrar" aria-label="Cerrar">×</button></div>${cuerpo}`;
+  $("#cerrar").onclick = cerrarHoja;
+  const ab = $("#btnAbrir"); if (ab) ab.onclick = () => abrirCasilla(n);
+  const im = $("#irMisiones"); if (im) im.onclick = () => { cerrarHoja(); verPestana("mis"); };
+}
+function abrirHoja(n){ diaAbierto = n; pintarHoja(n); $("#velo").hidden = false; document.body.style.overflow = "hidden"; }
+function cerrarHoja(){ diaAbierto = null; $("#velo").hidden = true; document.body.style.overflow = ""; }
+$("#velo").addEventListener("click", e => { if (e.target.id === "velo") cerrarHoja(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && diaAbierto) cerrarHoja(); });
+
+function verPestana(cual){
+  const cal = cual === "cal";
+  $("#tabCal").setAttribute("aria-selected", cal);
+  $("#tabMis").setAttribute("aria-selected", !cal);
+  $("#vistaCal").hidden = !cal; $("#vistaCal").style.display = cal ? "flex" : "";
+  $("#vistaMis").hidden = cal; $("#vistaMis").style.display = cal ? "" : "flex";
+}
+$("#tabCal").onclick = () => verPestana("cal");
+$("#tabMis").onclick = () => verPestana("mis");
+
+let toastT;
+function toast(txt){ const t = $("#toast"); t.textContent = txt; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=> t.hidden = true, 3000); }
+
+function confeti(){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c = $("#confeti"), ctx = c.getContext("2d");
+  c.hidden = false; c.width = innerWidth*devicePixelRatio; c.height = innerHeight*devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  const cols = ["#f4a8bf","#5b95d8","#fde8a8","#c9ecd9","#ec7f9f"];
+  const ps = Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight*0.6,vx:(Math.random()-.5)*12,vy:-Math.random()*14-4,r:Math.random()*6+3,c:cols[Math.random()*4|0],a:Math.random()*6}));
+  let t = 0;
+  (function paso(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    ps.forEach(p=>{ p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += .2; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); ctx.restore(); });
+    if (++t < 110) requestAnimationFrame(paso); else c.hidden = true;
+  })();
+}
+
+if (ENSAYO){
+  $("#pruebas").hidden = false;
+  $("#borrarPruebas").onclick = () => {
+    estado = VACIO(); fotoTemporal = null; editandoPerfil = false;
+    pintarFotoGrande(null); $("#inNombre").value = ""; $("#inCodigo").value = ""; $("#errCodigo").hidden = true;
+    $("#btnCrear").textContent = "Crear personaje";
+    guardarLocal(); cerrarHoja(); verPestana("cal"); pintar(); toast("Progreso de prueba borrado");
+  };
+}
+
+$("#btnCopia").onclick = descargarCopia;
+$("#btnRestaurar").onclick = () => $("#inCopia").click();
+$("#inCopia").onchange = e => { const f = e.target.files[0]; if (f) restaurarCopia(f); e.target.value = ""; };
+
+// Pide al navegador que no borre los datos guardados
+try { navigator.storage?.persist?.(); } catch(e){}
+
+aplicarTema();
+cargarLocal();
+pintar();
+</script>
+
+</body>
+</html>
